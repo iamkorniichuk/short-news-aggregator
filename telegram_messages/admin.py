@@ -32,4 +32,4 @@ class MessageAdmin(admin.ModelAdmin):
 
     @admin.display(description="is embedded")
     def is_embedded(self, obj):
-        return obj.embedding != None
+        return obj.embedding is not None

@@ -1,5 +1,6 @@
 from pathlib import Path
 import environ
+import openai
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -120,7 +121,5 @@ TELETHON = {
     "API_HASH": env("TELEGRAM_API_HASH"),
     "DEFAULT_PHONE_NUMBER": env("DEFAULT_TELEGRAM_PHONE_NUMBER"),
 }
-
-import openai
 
 openai.my_api_key = env("OPENAI_API_KEY")

@@ -6,7 +6,6 @@ import telegram_messages.models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
