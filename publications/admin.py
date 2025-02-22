@@ -10,7 +10,7 @@ class PublicationAdmin(admin.ModelAdmin):
     list_display = [
         "id",
         "datetime",
-        "message_url",
+        "publication_url",
         "is_embedded",
     ]
     list_filter = [
@@ -20,14 +20,14 @@ class PublicationAdmin(admin.ModelAdmin):
             filter_lookup="isnull",
         )
     ]
-    message_url = admin.display(
+    publication_url = admin.display(
         ExternalLinkTag(
             href="get_absolute_url",
             alt="__str__",
             inner_text="get_absolute_url",
             open_new_tab=True,
         ),
-        description="message",
+        description="publication",
     )
 
     @admin.display(description="is embedded")

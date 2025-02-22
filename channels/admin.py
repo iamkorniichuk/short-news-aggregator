@@ -11,8 +11,8 @@ class ChannelAdmin(admin.ModelAdmin):
     list_display = [
         "id",
         "username_with_url",
-        "channel_id",
-        "messages_number",
+        "telegram_id",
+        "publications_number",
     ]
     form = ChannelForm
 
@@ -26,6 +26,6 @@ class ChannelAdmin(admin.ModelAdmin):
         description="username",
     )
 
-    @admin.display(description="messages")
-    def messages_number(self, obj):
-        return obj.messages.count()
+    @admin.display(description="publications")
+    def publications_number(self, obj):
+        return obj.publications.count()

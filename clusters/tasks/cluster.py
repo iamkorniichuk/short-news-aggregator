@@ -8,11 +8,11 @@ def create_clusters():
     grouped_df = get_messages_clusters()
     for id, messages in grouped_df:
         cluster = Cluster.objects.create()
-        messages_id = messages["id"].tolist()
-        for id in messages_id:
-            message = Publication.objects.get(id=id)
-            message.cluster = cluster
-            message.save()
+        publications_id = messages["id"].tolist()
+        for id in publications_id:
+            publication = Publication.objects.get(id=id)
+            publication.cluster = cluster
+            publication.save()
 
 
 def get_messages_clusters():

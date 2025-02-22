@@ -15,13 +15,13 @@ class ChannelForm(forms.ModelForm):
     def save(self, commit=True):
         instance = super().save(commit=False)
 
-        instance.channel_id = self.get_channel_id(instance.username)
+        instance.telegram_id = self.get_telegram_id(instance.username)
         if commit:
             instance.save()
         return instance
 
     @async_to_sync
-    async def get_channel_id(self, username):
+    async def get_telegram_id(self, username):
         async with TelegramClient(
             "Gathering channels' info",
             settings.TELETHON["API_ID"],

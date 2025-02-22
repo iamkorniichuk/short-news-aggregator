@@ -16,26 +16,26 @@ async def gather_publications():
         settings.TELETHON["API_HASH"],
     ) as client:
         async for channel in Channel.objects.all():
-            recent_message = await channel.messages.order_by("-datetime").afirst()
-            message_id = recent_message.message_id if recent_message else 0
-            telegram_messages = await get_new_messages(
+            recent_publication = await channel.messages.order_by("-datetime").afirst()
+            telegram_id = recent_publication.telegram_id if recent_publication else 0
+            telegram_publications = await get_new_publications(
                 client,
                 channel.username,
-                message_id,
+                telegram_id,
             )
-            await save_telegram_messages(telegram_messages.messages)
+            await save_telegram_publications(telegram_publications.messages)
 
 
-async def save_telegram_messages(messages):
+async def save_telegram_publications(publications):
     result = await Publication.objects.abulk_create(
         [
             Publication(
-                message_id=obj.id,
-                channel=await Channel.objects.aget(channel_id=obj.peer_id.channel_id),
+                telegram_id=obj.id,
+                channel=await Channel.objects.aget(telegram_id=obj.peer_id.channel_id),
                 text=clear_text(obj.message),
                 datetime=obj.date,
             )
-            for obj in messages
+            for obj in publications
             if obj.message
         ]
     )
@@ -52,7 +52,7 @@ def clear_text(text):
     return text
 
 
-async def get_new_messages(client, username, recent_message_id):
+async def get_new_publications(client, username, recent_publication_id):
     channel = await client.get_entity(username)
     optional_kwargs = {
         "offset_id": 0,
@@ -65,7 +65,7 @@ async def get_new_messages(client, username, recent_message_id):
         GetHistoryRequest(
             peer=channel,
             limit=100,
-            min_id=recent_message_id,
+            min_id=recent_publication_id,
             **optional_kwargs,
         )
     )

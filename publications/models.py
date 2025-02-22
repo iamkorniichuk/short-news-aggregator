@@ -7,27 +7,27 @@ from clusters.models import Cluster
 
 class Publication(models.Model):
     class Meta:
-        unique_together = [["message_id", "channel"]]
+        unique_together = [["telegram_id", "channel"]]
 
     text = models.TextField()
     datetime = models.DateTimeField()
-    message_id = models.PositiveIntegerField()
+    telegram_id = models.PositiveIntegerField()
     channel = models.ForeignKey(
         Channel,
         models.RESTRICT,
-        related_name="messages",
+        related_name="publications",
     )
     embedding = EmbeddingField(blank=True, null=True)
     cluster = models.ForeignKey(
         Cluster,
         models.SET_NULL,
-        related_name="messages",
+        related_name="publications",
         blank=True,
         null=True,
     )
 
     def get_absolute_url(self):
-        return f"https://www.t.me/{self.channel.username}/{self.message_id}"
+        return f"https://www.t.me/{self.channel.username}/{self.telegram_id}"
 
     def __str__(self):
-        return f"Message({self.pk})"
+        return f"Publication({self.pk})"
