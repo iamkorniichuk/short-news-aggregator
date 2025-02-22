@@ -1,12 +1,12 @@
 from django.contrib import admin
 
-from telegram_messages.models import Message
+from publications.models import Publication
 
 from .models import Cluster
 
 
 class MessageInline(admin.TabularInline):
-    model = Message
+    model = Publication
 
 
 @admin.register(Cluster)

@@ -5,11 +5,11 @@ from telethon.tl.functions.messages import GetHistoryRequest
 from emoji import replace_emoji
 import re
 
-from telegram_messages.models import Message
-from telegram_channels.models import Channel
+from publications.models import Publication
+from channels.models import Channel
 
 
-async def gather_messages():
+async def gather_publications():
     async with TelegramClient(
         "Gathering messages",
         settings.TELETHON["API_ID"],
@@ -27,9 +27,9 @@ async def gather_messages():
 
 
 async def save_telegram_messages(messages):
-    result = await Message.objects.abulk_create(
+    result = await Publication.objects.abulk_create(
         [
-            Message(
+            Publication(
                 message_id=obj.id,
                 channel=await Channel.objects.aget(channel_id=obj.peer_id.channel_id),
                 text=clear_text(obj.message),

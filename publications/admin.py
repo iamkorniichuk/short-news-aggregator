@@ -2,11 +2,11 @@ from django.contrib import admin
 
 from commons.admin import ExternalLinkTag, bool_filter_factory
 
-from .models import Message
+from .models import Publication
 
 
-@admin.register(Message)
-class MessageAdmin(admin.ModelAdmin):
+@admin.register(Publication)
+class PublicationAdmin(admin.ModelAdmin):
     list_display = [
         "id",
         "datetime",

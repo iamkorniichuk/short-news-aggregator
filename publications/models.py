@@ -1,11 +1,11 @@
 from django.db import models
 
 from commons.models import EmbeddingField
-from telegram_channels.models import Channel
+from channels.models import Channel
 from clusters.models import Cluster
 
 
-class Message(models.Model):
+class Publication(models.Model):
     class Meta:
         unique_together = [["message_id", "channel"]]
 

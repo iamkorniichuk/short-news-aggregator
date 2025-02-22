@@ -1,7 +1,7 @@
 from commons.data_processing import queryset_to_data_frame, clusterize
 
 from clusters.models import Cluster
-from telegram_messages.models import Message
+from publications.models import Publication
 
 
 def create_clusters():
@@ -10,7 +10,7 @@ def create_clusters():
         cluster = Cluster.objects.create()
         messages_id = messages["id"].tolist()
         for id in messages_id:
-            message = Message.objects.get(id=id)
+            message = Publication.objects.get(id=id)
             message.cluster = cluster
             message.save()
 
@@ -25,7 +25,7 @@ def get_messages_clusters():
 
 def get_unclestered_messages():
     return (
-        Message.objects.filter(
+        Publication.objects.filter(
             embedding__isnull=False,
             cluster__isnull=True,
         )
