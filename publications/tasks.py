@@ -1,10 +1,9 @@
 from django.conf import settings
 
 from telethon.client import TelegramClient
-from telethon.tl.functions.messages import GetHistoryRequest
 from sentence_transformers import SentenceTransformer
-from emoji import replace_emoji
 import re
+import emoji
 
 from publications.models import Publication
 from channels.models import Channel
@@ -19,6 +18,7 @@ async def gather_publications():
         settings.TELETHON["API_ID"],
         settings.TELETHON["API_HASH"],
     ) as client:
+        client.parse_mode = "md"
         async for channel in Channel.objects.all():
             recent_publication = await channel.publications.order_by(
                 "-datetime"
@@ -29,16 +29,17 @@ async def gather_publications():
                 channel.username,
                 telegram_id,
             )
-            await save_telegram_publications(telegram_publications.messages)
+            await save_telegram_publications(telegram_publications)
 
 
 async def save_telegram_publications(publications):
     results = []
     for obj in publications:
-        if not obj.message:
+        if not obj.text:
             continue
 
-        text = clear_text(obj.message)
+        text = clean_text(obj.text)
+
         channel = await Channel.objects.aget(telegram_id=obj.peer_id.channel_id)
         embedding = get_embedding(text)
         results.append(
@@ -59,31 +60,53 @@ def get_embedding(text):
     return embedding_model.encode(text).tolist()
 
 
-def clear_text(text):
-    text = replace_emoji(text, "")
+def clean_text(text):
+    # Remove markdown formatting
+    text = re.sub(r"(\*\*|__)(.*?)\1", r"\2", text)
+    text = re.sub(r"(\*|_)(.*?)\1", r"\2", text)
+    text = re.sub(r"~~(.*?)~~", r"\1", text)
+    text = re.sub(r"`(.*?)`", r"\1", text)
 
-    text = re.sub(r"http\S+|www\S+", "", text)
+    # Remove hashtags
+    text = re.sub(r"#\w+", "", text)
 
-    text = text.replace("\n", " ").replace("\r", "")
+    # Remove emojis
+    text = emoji.replace_emoji(text, "")
+
+    # Remove leading and trailing URLs (both markdown and plain URL)
+    url_pattern = r"(https?://\S+|\[.*?\]\(https?://\S+\))"
+    while re.match(rf"^\s*{url_pattern}(\s+{url_pattern})*\s*", text):
+        text = re.sub(rf"^\s*{url_pattern}(\s+{url_pattern})*\s*", "", text)
+
+    while re.search(rf"\s*{url_pattern}(\s+{url_pattern})*\s*$", text):
+        text = re.sub(rf"\s*{url_pattern}(\s+{url_pattern})*\s*$", "", text)
+
+    # Remove all URLs
+    text = re.sub(r"https?://\S+", "", text)
+
+    # Remove markdown links, preserving only the label
+    def replace_markdown_links(m):
+        label = m.group(1)
+        label = re.sub(r"[\[\]\(\)]", "", label).strip()
+        return label
+
+    text = re.sub(r"\[(.*?)\]\(https?://\S+\)", replace_markdown_links, text)
+
+    # Remove handlers
+    text = re.sub(r"^@\w+\s*", "", text)
+    text = re.sub(r"\s*@\w+$", "", text)
+
+    # Remove extra whitespace
+    text = text.strip()
 
     return text
 
 
 async def get_new_publications(client, username, recent_publication_id):
     channel = await client.get_entity(username)
-    optional_kwargs = {
-        "offset_id": 0,
-        "offset_date": None,
-        "add_offset": 0,
-        "max_id": 0,
-        "hash": 0,
-    }
-    messages = await client(
-        GetHistoryRequest(
-            peer=channel,
-            limit=100,
-            min_id=recent_publication_id,
-            **optional_kwargs,
-        )
+    messages = await client.get_messages(
+        channel,
+        limit=1,
+        min_id=recent_publication_id,
     )
     return messages
