@@ -1,15 +1,13 @@
 import numpy as np
 import pandas as pd
 from sklearn.cluster._hdbscan.hdbscan import HDBSCAN
-from sumy.parsers.plaintext import PlaintextParser
-from sumy.nlp.tokenizers import Tokenizer
-from sumy.summarizers.text_rank import TextRankSummarizer
+from transformers import pipeline
 
 from summaries.models import Summary
 from publications.models import Publication
 
 
-summarizer = TextRankSummarizer()
+summarizer = pipeline("summarization", model="facebook/bart-large-cnn", device=-1)
 
 
 def create_summaries():
@@ -26,15 +24,18 @@ def create_summaries():
         texts = publications["text"].tolist()
 
         text = "\n".join(texts)
-        parser = PlaintextParser.from_string(text, Tokenizer("english"))
 
-        summary = summarizer(parser.document, 2)
-        summary = " ".join(str(sentence) for sentence in summary)
+        response = summarizer(
+            text,
+            max_length=200,
+            min_length=20,
+            do_sample=False,
+        )
 
-        obj = Summary(text=summary)
-        obj.save()
-        obj.publications.set(ids)
-        obj.save()
+        summary = Summary(text=response[0]["summary_text"])
+        summary.save()
+        summary.publications.set(ids)
+        summary.save()
 
 
 def clusterize_queryset(queryset):
