@@ -106,7 +106,7 @@ async def get_new_publications(client, username, recent_publication_id):
     channel = await client.get_entity(username)
     messages = await client.get_messages(
         channel,
-        limit=1,
+        limit=20,
         min_id=recent_publication_id,
     )
     return messages
