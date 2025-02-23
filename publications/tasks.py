@@ -1,9 +1,11 @@
 from django.conf import settings
 
-from telethon.client import TelegramClient
-from sentence_transformers import SentenceTransformer
 import re
 import emoji
+from telethon.client import TelegramClient
+from telethon.tl.functions.messages import GetMessagesViewsRequest
+from sentence_transformers import SentenceTransformer
+
 
 from publications.models import Publication
 from channels.models import Channel
@@ -23,18 +25,30 @@ async def gather_publications():
             recent_publication = await channel.publications.order_by(
                 "-datetime"
             ).afirst()
+
             telegram_id = recent_publication.telegram_id if recent_publication else 0
+            peer = await client.get_entity(channel.username)
+
             telegram_publications = await get_new_publications(
                 client,
-                channel.username,
+                peer,
                 telegram_id,
             )
-            await save_telegram_publications(telegram_publications)
+            publication_ids = [obj.id for obj in telegram_publications]
+
+            response = await client(
+                GetMessagesViewsRequest(
+                    peer=peer,
+                    id=publication_ids,
+                    increment=False,
+                )
+            )
+            await save_telegram_publications(telegram_publications, response.views)
 
 
-async def save_telegram_publications(publications):
+async def save_telegram_publications(publications, views_list):
     results = []
-    for obj in publications:
+    for i, obj in enumerate(publications):
         if not obj.text:
             continue
 
@@ -42,6 +56,7 @@ async def save_telegram_publications(publications):
 
         channel = await Channel.objects.aget(telegram_id=obj.peer_id.channel_id)
         embedding = get_embedding(text)
+
         results.append(
             Publication(
                 telegram_id=obj.id,
@@ -49,6 +64,7 @@ async def save_telegram_publications(publications):
                 text=text,
                 embedding=embedding,
                 datetime=obj.date,
+                views=views_list[i].views,
             )
         )
 
@@ -102,10 +118,9 @@ def clean_text(text):
     return text
 
 
-async def get_new_publications(client, username, recent_publication_id):
-    channel = await client.get_entity(username)
+async def get_new_publications(client, peer, recent_publication_id):
     messages = await client.get_messages(
-        channel,
+        peer,
         limit=20,
         min_id=recent_publication_id,
     )

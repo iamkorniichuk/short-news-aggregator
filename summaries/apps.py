@@ -16,4 +16,4 @@ class SummariesConfig(AppConfig):
             create_summaries,
         )
 
-        RepeatTimer(timedelta(days=1), create_summaries).start()
+        RepeatTimer(timedelta(hours=6), create_summaries).start()

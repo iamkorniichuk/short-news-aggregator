@@ -1,6 +1,7 @@
 # Development-specific files
 *.sqlite3
 *.session
+*.session-journal
 .ruff_cache/
 
 # Configs

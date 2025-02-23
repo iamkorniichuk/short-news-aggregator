@@ -7,7 +7,7 @@ from summaries.models import Summary
 from publications.models import Publication
 
 
-summarizer = pipeline("summarization", model="facebook/bart-large-cnn", device=-1)
+summarizer = pipeline("summarization", model="facebook/bart-large-cnn", device=0)
 
 
 def create_summaries():
@@ -15,13 +15,15 @@ def create_summaries():
         Publication.objects.filter(
             summaries=None,
         )
-        .order_by("datetime")
+        .order_by("datetime", "-views")
         .all()
     )
     dataframe = clusterize_queryset(left_publications)
+
     for _, publications in dataframe:
-        ids = publications["id"].tolist()
-        texts = publications["text"].tolist()
+        size = 20
+        ids = publications["id"].tolist()[:size]
+        texts = publications["text"].tolist()[:size]
 
         text = "\n".join(texts)
 

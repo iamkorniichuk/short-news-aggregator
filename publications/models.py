@@ -17,6 +17,7 @@ class Publication(models.Model):
         related_name="publications",
     )
     embedding = EmbeddingField(blank=True, editable=False)
+    views = models.PositiveIntegerField()
 
     def get_absolute_url(self):
         return f"https://www.t.me/{self.channel.username}/{self.telegram_id}"
