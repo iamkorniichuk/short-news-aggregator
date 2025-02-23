@@ -2,11 +2,15 @@ from django.conf import settings
 
 from telethon.client import TelegramClient
 from telethon.tl.functions.messages import GetHistoryRequest
+from sentence_transformers import SentenceTransformer
 from emoji import replace_emoji
 import re
 
 from publications.models import Publication
 from channels.models import Channel
+
+
+embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
 
 async def gather_publications():
@@ -16,7 +20,9 @@ async def gather_publications():
         settings.TELETHON["API_HASH"],
     ) as client:
         async for channel in Channel.objects.all():
-            recent_publication = await channel.messages.order_by("-datetime").afirst()
+            recent_publication = await channel.publications.order_by(
+                "-datetime"
+            ).afirst()
             telegram_id = recent_publication.telegram_id if recent_publication else 0
             telegram_publications = await get_new_publications(
                 client,
@@ -27,19 +33,30 @@ async def gather_publications():
 
 
 async def save_telegram_publications(publications):
-    result = await Publication.objects.abulk_create(
-        [
+    results = []
+    for obj in publications:
+        if not obj.message:
+            continue
+
+        text = clear_text(obj.message)
+        channel = await Channel.objects.aget(telegram_id=obj.peer_id.channel_id)
+        embedding = get_embedding(text)
+        results.append(
             Publication(
                 telegram_id=obj.id,
-                channel=await Channel.objects.aget(telegram_id=obj.peer_id.channel_id),
-                text=clear_text(obj.message),
+                channel=channel,
+                text=text,
+                embedding=embedding,
                 datetime=obj.date,
             )
-            for obj in publications
-            if obj.message
-        ]
-    )
-    return result
+        )
+
+    await Publication.objects.abulk_create(results)
+    return results
+
+
+def get_embedding(text):
+    return embedding_model.encode(text).tolist()
 
 
 def clear_text(text):

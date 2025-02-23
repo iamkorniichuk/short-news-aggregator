@@ -9,8 +9,6 @@ class PublicationsConfig(AppConfig):
     name = "publications"
 
     def ready(self):
-        from .handlers import set_embedding as set_embedding
-
         self.start_background_task()
 
     def start_background_task(self):
