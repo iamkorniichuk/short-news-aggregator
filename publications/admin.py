@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from commons.admin import ExternalLinkTag, bool_filter_factory
+from commons.admin import ExternalLinkTag
 
 from .models import Publication
 
@@ -11,13 +11,6 @@ class PublicationAdmin(admin.ModelAdmin):
         "id",
         "datetime",
         "publication_url",
-    ]
-    list_filter = [
-        bool_filter_factory(
-            "embedding",
-            title="is embedding null",
-            filter_lookup="isnull",
-        )
     ]
     publication_url = admin.display(
         ExternalLinkTag(

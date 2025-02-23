@@ -2,7 +2,6 @@ from django.db import models
 
 from commons.models import EmbeddingField
 from channels.models import Channel
-from clusters.models import Cluster
 
 
 class Publication(models.Model):
@@ -18,13 +17,6 @@ class Publication(models.Model):
         related_name="publications",
     )
     embedding = EmbeddingField(blank=True, editable=False)
-    cluster = models.ForeignKey(
-        Cluster,
-        models.SET_NULL,
-        related_name="publications",
-        blank=True,
-        null=True,
-    )
 
     def get_absolute_url(self):
         return f"https://www.t.me/{self.channel.username}/{self.telegram_id}"

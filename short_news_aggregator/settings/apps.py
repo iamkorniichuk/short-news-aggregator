@@ -11,8 +11,8 @@ THIRD_PARTY_APPS = []
 
 PROJECT_APPS = [
     "channels",
-    "clusters",
     "publications",
+    "summaries",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PROJECT_APPS

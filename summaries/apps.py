@@ -13,9 +13,7 @@ class SummariesConfig(AppConfig):
 
     def start_background_task(self):
         from .tasks import (
-            create_clusters,
-            populate_digests,
+            create_summaries,
         )
 
-        RepeatTimer(timedelta(days=1), create_clusters).start()
-        RepeatTimer(timedelta(minutes=1), populate_digests).start()
+        RepeatTimer(timedelta(days=1), create_summaries).start()
