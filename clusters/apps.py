@@ -4,9 +4,9 @@ from datetime import timedelta
 from commons.tasks import RepeatTimer
 
 
-class ClustersConfig(AppConfig):
+class SummariesConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "clusters"
+    name = "summaries"
 
     def ready(self):
         self.start_background_task()

@@ -17,7 +17,7 @@ class Publication(models.Model):
         models.RESTRICT,
         related_name="publications",
     )
-    embedding = EmbeddingField(blank=True, null=True)
+    embedding = EmbeddingField(blank=True, editable=False)
     cluster = models.ForeignKey(
         Cluster,
         models.SET_NULL,

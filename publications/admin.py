@@ -11,7 +11,6 @@ class PublicationAdmin(admin.ModelAdmin):
         "id",
         "datetime",
         "publication_url",
-        "is_embedded",
     ]
     list_filter = [
         bool_filter_factory(
@@ -29,7 +28,3 @@ class PublicationAdmin(admin.ModelAdmin):
         ),
         description="publication",
     )
-
-    @admin.display(description="is embedded")
-    def is_embedded(self, obj):
-        return obj.embedding is not None
