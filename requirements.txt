@@ -1,3 +1,5 @@
+aiohttp==3.11.12
+cryptg==0.5.0.post0
 Django==4.2.6
 emoji==2.8.0
 environs==11.2.1

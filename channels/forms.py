@@ -23,7 +23,7 @@ class ChannelForm(forms.ModelForm):
     @async_to_sync
     async def get_telegram_id(self, username):
         async with TelegramClient(
-            "Gathering channels' info",
+            "channels",
             settings.TELETHON["API_ID"],
             settings.TELETHON["API_HASH"],
         ) as client:

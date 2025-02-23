@@ -11,7 +11,7 @@ from channels.models import Channel
 
 async def gather_publications():
     async with TelegramClient(
-        "Gathering messages",
+        "publications",
         settings.TELETHON["API_ID"],
         settings.TELETHON["API_HASH"],
     ) as client:
