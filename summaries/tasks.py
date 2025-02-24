@@ -1,13 +1,13 @@
+from transformers import pipeline
 import numpy as np
 import pandas as pd
 from sklearn.cluster._hdbscan.hdbscan import HDBSCAN
-from transformers import pipeline
 
 from summaries.models import Summary
 from publications.models import Publication
 
 
-summarizer = pipeline("summarization", model="facebook/bart-large-cnn", device=0)
+summarizer = pipeline("summarization", model="facebook/bart-large-cnn", device=-1)
 
 
 def create_summaries():
@@ -15,32 +15,32 @@ def create_summaries():
         Publication.objects.filter(
             summaries=None,
         )
-        .order_by("datetime", "-views")
+        .order_by("-views")
         .all()
     )
-    dataframe = clusterize_queryset(left_publications)
+    dataframe = clusterize_publications(left_publications)
 
     for _, publications in dataframe:
-        size = 20
-        ids = publications["id"].tolist()[:size]
-        texts = publications["text"].tolist()[:size]
+        publications = publications
 
-        text = "\n".join(texts)
+        ids = publications["id"].tolist()
+        texts = publications["text"].tolist()
+
+        text = "\n".join(texts)[:1024]
 
         response = summarizer(
             text,
-            max_length=200,
+            max_length=50,
             min_length=20,
             do_sample=False,
         )
-
         summary = Summary(text=response[0]["summary_text"])
         summary.save()
         summary.publications.set(ids)
         summary.save()
 
 
-def clusterize_queryset(queryset):
+def clusterize_publications(queryset):
     values = list(queryset.values("id", "embedding", "text"))
     dataframe = pd.DataFrame(values)
 

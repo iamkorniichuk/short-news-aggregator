@@ -3,6 +3,7 @@
 *.session
 *.session-journal
 .ruff_cache/
+media/
 
 # Configs
 .ebextensions/
