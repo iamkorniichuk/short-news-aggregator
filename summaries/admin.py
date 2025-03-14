@@ -34,7 +34,19 @@ class SummaryAdmin(admin.ModelAdmin):
         "text",
         "publications_number",
     ]
+    readonly_fields = ["publications_text"]
     actions = [plot]
+
+    def publications_text(self, obj):
+        result = ""
+        for publication in obj.publications.all():
+            pk = publication.pk
+            text = publication.text
+            result += f"{pk}: {text}\n\n"
+
+        return result
+
+    publications_text.short_description = "Publications text"
 
     @admin.display(description="publications")
     def publications_number(self, obj):
