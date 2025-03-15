@@ -73,7 +73,7 @@ async def save_telegram_publications(publications, views_list):
 
 
 def get_embedding(text):
-    return embedding_model.encode(text).tolist()
+    return embedding_model.encode(text, normalize_embeddings=True).tolist()
 
 
 def clean_text(text):

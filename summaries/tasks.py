@@ -18,19 +18,22 @@ def create_summaries():
         .order_by("-views")
         .all()
     )
-    dataframe = clusterize_publications(left_publications)
+    dataframe, noise = clusterize_publications(left_publications)
+
+    for pk in noise["id"].tolist():
+        obj = Publication.objects.get(pk=pk)
+        obj.delete()
 
     for _, publications in dataframe:
-        publications = publications
+        length = min(len(publications), 20)
+        ids = publications["id"].tolist()[:length]
+        texts = publications["text"].tolist()[:length]
 
-        ids = publications["id"].tolist()
-        texts = publications["text"].tolist()
-
-        text = "\n".join(texts)[:1024]
+        text = "\n".join(texts)
 
         response = summarizer(
             text,
-            max_length=50,
+            max_length=200,
             min_length=20,
             do_sample=False,
         )
@@ -50,12 +53,14 @@ def clusterize_publications(queryset):
     matrix = np.vstack(dataframe.embedding.values)
 
     hdbscan = HDBSCAN(
-        min_cluster_size=3,
+        min_cluster_size=5,
         metric="euclidean",
-        cluster_selection_method="leaf",
+        cluster_selection_method="eom",
     )
-    hdbscan.fit(matrix)
+    labels = hdbscan.fit_predict(matrix)
 
-    dataframe["cluster"] = hdbscan.labels_
+    dataframe["cluster"] = labels
+    noise = dataframe[dataframe["cluster"] == -1]
+    dataframe = dataframe[dataframe["cluster"] != -1]
 
-    return dataframe.groupby("cluster")
+    return dataframe.groupby("cluster"), noise
